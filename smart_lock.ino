@@ -1,20 +1,14 @@
+#include <Arduino.h>
+#include "env.h"
 #include <Keypad.h>
 #include <LiquidCrystal_I2C.h>
-#include <Servo.h>
+#include <ESP32Servo.h>
 #include <Wire.h>
-#define BLYNK_TEMPLATE_NAME "smartlock"
-#define BLYNK_TEMPLATE_ID "TMPL2wVMUtUFu"
-#define BLYNK_AUTH_TOKEN "5qufVBDcSKXd2EKvK2DM9Gn_ZnJTQtgq"
-#define BOT_TOKEN "7844471260076333:AAEJJnANcxreJhfJfBQ4fPvfIjJybNUuN5I""
 #include <WiFiClientSecure.h>
 #include <UniversalTelegramBot.h>
 #include <WiFi.h>
 #include <BlynkSimpleEsp32.h>
-#define CHAT_ID "Telegram-User-ID"
 #define BuzzerPin 19 
-char ssid[] = "wifi-ssid";
-char pass[] = "wifi-password";
-const char allowed[] = "ABCD0123456789";
 
 WiFiClientSecure secured_client;
 UniversalTelegramBot bot(BOT_TOKEN, secured_client);
@@ -36,8 +30,15 @@ String pad = "";
 String HomePassword = "123";
 String otp = "ZZZ";
 
+boolean state =true;
+// functions prototype
+void openDoor(); 
+void smartLock();
+void print(String, String);
+String formatDigit(long);
+
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
   secured_client.setCACert(TELEGRAM_CERTIFICATE_ROOT);
   Wire.begin(21, 22);
@@ -52,93 +53,93 @@ void loop() {
 	Blynk.run();
 	smartLock();
 }
-  
+void print(String str1, String str2 = ""){
+  // lcd.clear();
+	// lcd.setCursor(0,0);
+  // lcd.print(str1);
+  // if(str2!=""){
+	// lcd.setCursor(0,1);
+  // lcd.print(str2);
+  // }
+  Serial.println(str1);
+  if (str2!="") Serial.println(str2);
+}
+String formatDigit(long input){
+  String str = String(input);
+  String output = "";
+  int len = str.length();
 
+  for (int i = 0; i < len; i++) {
+    output += str[i];
+    // Add dash after every 4 digits except the last group
+    if ((i + 1) % 4 == 0 && (i + 1) < len) {
+      output += '-';
+    }
+  }
 
+  return output;
+}
 void smartLock() {
 	if (numTrials == 3){
-  		lcd.setCursor(0,0);
-    	lcd.print("LOCKED");
+    print("LOCKED");
 		Blynk.virtualWrite (V1, "Intruder Alert");
 		delay(1000);
-   		tone(BuzzerPin, 600);
-    		delay(2000);
-    		noTone(BuzzerPin); 
+    tone(BuzzerPin, 600);
+    delay(2000);
+    noTone(BuzzerPin); 
 		return;
     }
 
 	char customKey = customKeypad.getKey();
 
-  	if (customKey){ 
+  if (customKey){ 
 		pad += customKey; 
     	//Serial.println(customKey);
-    	lcd.clear();
-    	lcd.setCursor(0,0);
-    	lcd.print("Password:");
-    	lcd.setCursor(0, 1);
-    	lcd.print(pad);
-      	delay(100);
+      print("Password:", pad);
+      delay(100);
     }
 
 	if (pad == HomePassword){
-    	lcd.clear();
-    	lcd.setCursor(0,0);
-    	lcd.print("Correct Password");
-    	delay(1000);
-  		openDoor();
-    	pad = "";
-  	}
+    print("Correct Password");
+    delay(1000);
+    openDoor();
+    pad = "";
+    state = true;
+  }
 
     else if (pad == otp){
-  		lcd.clear();
-    	lcd.setCursor(0,0);
-    	lcd.print("OTP Used");
+      print("OTP Used");
 		openDoor();
 		otp = "";
+    state = true;
 	}
 
-  	else if (pad.length() > 6) {
-  		lcd.clear();
-    	lcd.setCursor(0,0);
-    	lcd.print("Wrong password");
-    	delay(1000);
-   		tone(BuzzerPin, 600);
-    	delay(700);
-    	noTone(BuzzerPin);     
-   		pad = "";
-    	lcd.clear();
-    	numTrials++;
-		Blynk.virtualWrite (V1, "The password has been entered unsuccessfully");
-  	}
-
-	else if (pad == "") {
-		lcd.setCursor(0,0);
-    	lcd.print("Enter Passowrd: ");
+	else if (pad.length() > 6) {
+      print("Wrong password");
+      delay(1000);
+      tone(BuzzerPin, 600);
+      delay(700);
+      noTone(BuzzerPin);     
+      pad = "";
+      lcd.clear();
+      numTrials++;
+      Blynk.virtualWrite (V1, "The password has been entered unsuccessfully");
+      state = true;
+    }
+	else if (state){
+    print("Enter Passowrd: ");
+    state = false;
 	}
 }
 
 void openDoor() {
-	lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Door Is Opening");
-  	for (int pos = 0; pos <= 90; pos++) {
-    	myServo.write(pos);
-    	delay(10);
-  	}
-	lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Door Opened");
+  print("Door Is Opening");
+  myServo.write(90);
+	print("Door Opened");
 	delay(30000);
-	lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Door Is Closing");
-  	for (int pos = 90; pos >= 0; pos--) {
-    	myServo.write(pos);
-    	delay(10);
- 	}
-	lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Door Closed");
+	print("Door Is Closing");
+  myServo.write(0);
+	print("Door Closed");
 	Blynk.virtualWrite (V1, "Someone Opened the Door");
 }
 
@@ -159,12 +160,8 @@ void openDoor() {
 BLYNK_WRITE(V0) {
   int value = param.asInt();
   if (value == 1) {
-  	randomSeed(analogRead(0)); 
-  	otp="";
-  	for (int i = 0; i < 6; i++) {
-  		int r = random(0, 14);
-  		otp += allowed[r];
-  	}
+  randomSeed(analogRead(0)); 
+  otp = formatDigit(random(10000000, 100000000));
   Blynk.virtualWrite (V1, otp);
   bot.sendMessage(CHAT_ID, otp, "");
   delay(500);
