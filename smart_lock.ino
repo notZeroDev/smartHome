@@ -123,84 +123,49 @@ void smartLock() {
     delay(2000);
     noTone(BuzzerPin); 
 		return;
-  }
+    }
 
 	char customKey = customKeypad.getKey();
 
   if (customKey){ 
-    if(customKey=='*'){  //if the key pressed is * we will delete one character from pad
-
-      if(pad.length() <= 1){  //if pad already has one or zero chars
-        state = true;  //the screen will say enter password
-        pad="";
-        }
-
-      else{
-        pad.pop_back(); // else we have more than 1 char then we will delete the last char entered
-        //Serial.println(customKey);
-        print("Password:", pad);
-        delay(100);
-        }
-
+		pad += customKey; 
+    	//Serial.println(customKey);
+      print("Password:", pad);
+      delay(100);
     }
 
-    else if (customKey=='#'){ // else if # is entered we go check if password is correct
-
-      if (pad == HomePassword){
-            print("Correct Password");
-            delay(1000);
-            openDoor();
-            pad = "";
-            state = true;
-      }
-
-      else if (pad == otp){
-            print("OTP Used");
-            openDoor();
-            otp = "";
-            pad = "";
-            state = true;
-      }
-
-      else{
-            print("Wrong password");
-            delay(1000);
-            tone(BuzzerPin, 600);
-            delay(700);
-            noTone(BuzzerPin);     
-            pad = "";
-            lcd.clear();
-            numTrials++;
-            Blynk.virtualWrite (V1, "The password has been entered unsuccessfully");
-            state = true;
-      }
-
-    }
-
-    else{  // the key entered is neither * nor # 
-
-          if (pad.length() < 6) {
-            pad += customKey;
-            print("Password:", pad);
-          }
-
-          else {
-            print("Max 6 digits allowed");
-            delay(800);
-            print("Password:", pad);
-          }
-          
-    }
-        
+	if (pad == HomePassword){
+    print("Correct Password");
+    delay(1000);
+    openDoor();
+    pad = "";
+    state = true;
   }
-    
-  if (state){
-        print("Enter Password: ");
-        state = false;
-  }
-    
+
+    else if (pad == otp){
+      print("OTP Used");
+		openDoor();
+		otp = "";
+    state = true;
+	}
+
+	else if (pad.length() > 6) {
+      print("Wrong password");
+      delay(1000);
+      tone(BuzzerPin, 600);
+      delay(700);
+      noTone(BuzzerPin);     
+      pad = "";
+      lcd.clear();
+      numTrials++;
+      Blynk.virtualWrite (V1, "The password has been entered unsuccessfully");
+      state = true;
+    }
+	else if (state){
+    print("Enter Passowrd: ");
+    state = false;
+	}
 }
-	
 
 void openDoor() {
   print("Door Is Opening");
