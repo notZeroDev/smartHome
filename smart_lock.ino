@@ -8,6 +8,7 @@
 #include <UniversalTelegramBot.h>
 #include <WiFi.h>
 #include <BlynkSimpleEsp32.h>
+#include <HTTPClient.h>
 #define BuzzerPin 19 
 
 WiFiClientSecure secured_client;
@@ -35,6 +36,7 @@ boolean state =true;
 void openDoor(); 
 void smartLock();
 void print(String, String);
+void makeTelegramCall(String);
 String formatDigit(long);
 
 void setup() {
@@ -47,6 +49,7 @@ void setup() {
   myServo.attach(18);
   myServo.write(0);
   pinMode(BuzzerPin,OUTPUT);
+  makeTelegramCall("Testing calls from ESP 32");
 }
 
 void loop() {
@@ -63,6 +66,38 @@ void print(String str1, String str2 = ""){
   // }
   Serial.println(str1);
   if (str2!="") Serial.println(str2);
+}
+void makeTelegramCall(String msg){
+  String encodedMsg = "";
+  for (int i = 0; i < msg.length(); i++) {
+    char c = msg.charAt(i);
+    if (c == ' ') {
+      encodedMsg += "%20";
+    } else {
+      encodedMsg += c;
+    }
+  }
+
+  String url = "http://api.callmebot.com/start.php?source=web&user=" + String(TELEGRAM_USER) + "&text=" + encodedMsg + "&lang=en-GB-Standard-B";
+  print(url);
+  // Send HTTP GET request
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(url);  // Prepare URL
+    int httpResponseCode = http.GET();
+
+    if (httpResponseCode > 0) {
+      Serial.print("HTTP Response code: ");
+      Serial.println(httpResponseCode);
+      String response = http.getString();
+      Serial.println("Response:");
+      Serial.println(response);
+    } else {
+      Serial.print("Error code: ");
+      Serial.println(httpResponseCode);
+    }
+    http.end();
+  }
 }
 String formatDigit(long input){
   String str = String(input);

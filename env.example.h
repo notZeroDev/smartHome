@@ -10,6 +10,7 @@
 // Telegram Bot configuration
 #define BOT_TOKEN "Your_Bot_Token"
 #define CHAT_ID "Your_Chat_ID"
+#define TELEGRAM_USER "Your_Telegram_User"
 
 // Wi-Fi credentials
 char ssid[] = "Your_WiFi_SSID";
