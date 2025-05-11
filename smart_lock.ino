@@ -37,7 +37,7 @@ void openDoor();
 void smartLock();
 void print(String, String);
 void makeTelegramCall(String);
-String formatDigit(long);
+String formatDigit(String);
 
 void setup() {
   Serial.begin(115200);
@@ -99,13 +99,12 @@ void makeTelegramCall(String msg){
     http.end();
   }
 }
-String formatDigit(long input){
-  String str = String(input);
+String formatDigit(String input){
   String output = "";
-  int len = str.length();
+  int len =input.length();
 
   for (int i = 0; i < len; i++) {
-    output += str[i];
+    output +=input[i];
     // Add dash after every 4 digits except the last group
     if ((i + 1) % 4 == 0 && (i + 1) < len) {
       output += '-';
@@ -211,6 +210,7 @@ void openDoor() {
   myServo.write(0);
 	print("Door Closed");
 	Blynk.virtualWrite (V1, "Someone Opened the Door");
+  numTrials = 0;
 }
 
 /*void closeDoor() {
@@ -231,9 +231,10 @@ BLYNK_WRITE(V0) {
   int value = param.asInt();
   if (value == 1) {
   randomSeed(analogRead(0)); 
-  otp = formatDigit(random(10000000, 100000000));
-  Blynk.virtualWrite (V1, otp);
-  bot.sendMessage(CHAT_ID, otp, "");
+  otp = String(random(10000000, 100000000));
+  String formatedOTP = formatDigit(otp);
+  Blynk.virtualWrite (V1,formatedOTP);
+  bot.sendMessage(CHAT_ID,formatedOTP, "");
   delay(500);
   }
 }
