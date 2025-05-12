@@ -17,19 +17,19 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 Servo myServo;
 byte numTrials = 0;
 const byte Rows = 4;
-const byte Cols = 4;
+const byte Cols = 3;
 char hexakeys[Rows][Cols] = {
-  {'1','2','3','A'},
-  {'4','5','6','B'},
-  {'7','8','9','C'},
-  {'*','0','#','D'},  
+  {'1','2','3'},
+  {'4','5','6'},
+  {'7','8','9'},
+  {'*','0','#'},  
 };
 byte rowPins[Rows] = {13, 12, 14, 27};
 byte colPins[Cols] = {26, 25, 33, 32};
 Keypad customKeypad = Keypad(makeKeymap(hexakeys), rowPins, colPins, Rows, Cols);
 String pad = "";
 String HomePassword = "123";
-String otp = "ZZZ";
+String otp = "Z";
 
 boolean state =true;
 // functions prototype
@@ -126,106 +126,78 @@ void smartLock() {
 
 	char customKey = customKeypad.getKey();
 
-  if (customKey){ 
-    if(customKey=='*'){  //if the key pressed is * we will delete one character from pad
+if (customKey){
 
-      if(pad.length() <= 1){  //if pad already has one or zero chars
-        state = true;  //the screen will say enter password
-        pad="";
-        }
-
-      else{
-        pad.pop_back(); // else we have more than 1 char then we will delete the last char entered
-        //Serial.println(customKey);
-        print("Password:", pad);
-        delay(100);
-        }
-
+  if(customKey=='*'){  //if the key pressed is * we will delete one character from pad
+    if(pad.length() <= 1){  //if pad already has one or zero chars
+      state = true;  //the screen will say enter password
+      pad="";
+      }
+    else{
+      pad.pop_back(); // else we have more than 1 char then we will delete the last char entered
+      print("Password:", pad);
+      delay(100);
+      }
     }
 
-    else if (customKey=='#'){ // else if # is entered we go check if password is correct
-
-      if (pad == HomePassword){
-            print("Correct Password");
-            delay(1000);
-            openDoor();
-            pad = "";
-            state = true;
-      }
-
-      else if (pad == otp){
-            print("OTP Used");
-            openDoor();
-            otp = "";
-            pad = "";
-            state = true;
-      }
-
-      else{
-            print("Wrong password");
-            delay(1000);
-            tone(BuzzerPin, 600);
-            delay(700);
-            noTone(BuzzerPin);     
-            pad = "";
-            lcd.clear();
-            numTrials++;
-            Blynk.virtualWrite (V1, "The password has been entered unsuccessfully");
-            state = true;
-      }
-
+  else if (customKey=='#'){ // else if # is entered we go check if password is correct
+    if (pad == HomePassword){
+      print("Correct Password");
+      delay(2000);
+      openDoor();
+      pad = "";
+      state = true;
     }
-
-    else{  // the key entered is neither * nor # 
-
-          if (pad.length() < 6) {
-            pad += customKey;
-            print("Password:", pad);
-          }
-
-          else {
-            print("Max 6 digits allowed");
-            delay(800);
-            print("Password:", pad);
-          }
-          
+    else if (pad == otp){
+      print("OTP Used");
+      openDoor();
+      otp = "Z";
+      pad = "";
+      state = true;
+      bot.sendMessage(CHAT_ID,"OTP has been used", "");
     }
-        
+    else {
+      print("Wrong password");
+      delay(1000);
+      tone(BuzzerPin, 600);
+      delay(700);
+      noTone(BuzzerPin);     
+      pad = "";
+      lcd.clear();
+      numTrials++;
+      Blynk.virtualWrite (V1, "The password has been entered unsuccessfully");
+      state = true;
+    }
   }
+
+  else {  // the key entered is neither * nor # 
+    if (pad.length() < 6) {
+      pad += customKey;
+    }
+    else {
+      print("Max 6 digits allowed");
+      delay(2000);
+    }
+    print("Password:", String('*',pad.length()));
+    state = false;
+  }
+}
     
-  if (state){
+if (state){
         print("Enter Password: ");
         state = false;
   }
-    
 }
 	
-
 void openDoor() {
-  print("Door Is Opening");
   myServo.write(90);
 	print("Door Opened");
 	delay(30000);
-	print("Door Is Closing");
   myServo.write(0);
 	print("Door Closed");
 	Blynk.virtualWrite (V1, "Someone Opened the Door");
   numTrials = 0;
 }
-
-/*void closeDoor() {
-	lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Door Is Closing");
-  	for (int pos = 90; pos >= 0; pos--) {
-    	myServo.write(pos);
-    	delay(10);
- 	}
-	lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Door Closed");
-	delay(500);
-}*/
 
 BLYNK_WRITE(V0) {
   int value = param.asInt();
