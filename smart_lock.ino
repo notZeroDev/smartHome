@@ -30,12 +30,12 @@ Keypad customKeypad = Keypad(makeKeymap(hexakeys), rowPins, colPins, Rows, Cols)
 String pad = "";
 String HomePassword = "123";
 String otp = "Z";
-
+String hiddenPad = "";
 boolean state =true;
 // functions prototype
 void openDoor(); 
 void smartLock();
-void print(String, String);
+void print(String, int=0);
 void makeTelegramCall(String);
 String formatDigit(String);
 
@@ -56,17 +56,21 @@ void loop() {
 	Blynk.run();
 	smartLock();
 }
-void print(String str1, String str2 = ""){
-  // lcd.clear();
-	// lcd.setCursor(0,0);
-  // lcd.print(str1);
-  // if(str2!=""){
-	// lcd.setCursor(0,1);
-  // lcd.print(str2);
-  // }
-  Serial.println(str1);
-  if (str2!="") Serial.println(str2);
+
+void print(String str1, int len) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(str1);
+  hiddenPad = "";
+  if (len > 0 && len <= 6) {
+	for (int i = 0; i < len; i++) {
+  	   hiddenPad += '*';
+    }
+  lcd.setCursor(0, 1);
+  lcd.print(hiddenPad);
+  }
 }
+
 void makeTelegramCall(String msg){
   String encodedMsg = "";
   for (int i = 0; i < msg.length(); i++) {
@@ -134,8 +138,8 @@ if (customKey){
       pad="";
       }
     else{
-      pad.pop_back(); // else we have more than 1 char then we will delete the last char entered
-      print("Password:", pad);
+      pad.remove(pad.length() - 1); // else we have more than 1 char then we will delete the last char entered
+      print("Password:", pad.length());
       delay(100);
       }
     }
@@ -175,10 +179,10 @@ if (customKey){
       pad += customKey;
     }
     else {
-      print("Max 6 digits allowed");
+      print("Max 6 digits");
       delay(2000);
     }
-    print("Password:", String('*',pad.length()));
+    print("Password:", pad.length());
     state = false;
   }
 }
