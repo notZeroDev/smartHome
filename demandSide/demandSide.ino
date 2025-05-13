@@ -1,12 +1,12 @@
-// Potentiometer pins
-const int potAC = A2;
-const int potHeater = A3;
-const int potLight = A4;
+  // Potentiometer pins
+const int potAC = 32;
+const int potHeater = 33;
+const int potLight = 34;
 
 // LED pins
-const int ledAC = 10;
-const int ledHeater = 9;
-const int ledLight = 8;
+const int ledAC = 25;
+const int ledHeater = 26;
+const int ledLight = 27;
 
 // Load states
 bool acOn = true;
@@ -14,7 +14,7 @@ bool heaterOn = true;
 bool lightOn = true;
 
 // Total load threshold
-const int totalLoadThreshold = 1500;
+const int totalLoadThreshold = 6000;
 
 void setup() {
   Serial.begin(9600);
@@ -23,9 +23,9 @@ void setup() {
   pinMode(ledHeater, OUTPUT);
   pinMode(ledLight, OUTPUT);
 
-  digitalWrite(ledAC, HIGH);
-  digitalWrite(ledHeater, HIGH);
-  digitalWrite(ledLight, HIGH);
+  digitalWrite(ledAC, LOW);
+  digitalWrite(ledHeater, LOW);
+  digitalWrite(ledLight, LOW);
 
   Serial.println("System started. All devices ON.");
 }
@@ -34,7 +34,13 @@ void loop() {
   int valAC = analogRead(potAC);
   int valHeater = analogRead(potHeater);
   int valLight = analogRead(potLight);
-
+  Serial.println("Total Loads");
+  // Serial.print("AC: ");
+  // Serial.print(valAC);
+  // Serial.print("   Heater: ");
+  // Serial.print(valHeater);
+  // Serial.print("   Light: ");
+  // Serial.println(valLight);
   int loadAC = acOn ? valAC : 0;
   int loadHeater = heaterOn ? valHeater : 0;
   int loadLight = lightOn ? valLight : 0;
@@ -60,7 +66,7 @@ bool cutOffLoad(int valAC, int valHeater, int valLight, int totalLoad) {
   // Always cut AC first if it's on and we are over threshold
   if (totalLoad > totalLoadThreshold && acOn) {
     acOn = false;
-    digitalWrite(ledAC, LOW);
+    digitalWrite(ledAC, HIGH);
     Serial.println("AC has been cut off.");
     totalLoad -= valAC;
     didCut = true;
@@ -69,7 +75,7 @@ bool cutOffLoad(int valAC, int valHeater, int valLight, int totalLoad) {
   // Then cut Heater if needed
   else if (totalLoad > totalLoadThreshold && heaterOn) {
     heaterOn = false;
-    digitalWrite(ledHeater, LOW);
+    digitalWrite(ledHeater, HIGH);
     Serial.println("Heater has been cut off.");
     totalLoad -= valHeater;
     didCut = true;
@@ -78,7 +84,7 @@ bool cutOffLoad(int valAC, int valHeater, int valLight, int totalLoad) {
   // Finally cut Lights if needed
   else if (totalLoad > totalLoadThreshold && lightOn) {
     lightOn = false;
-    digitalWrite(ledLight, LOW);
+    digitalWrite(ledLight, HIGH);
     Serial.println("Lights have been cut off.");
     didCut = true;
   }
@@ -92,7 +98,7 @@ void restoreLoad(int totalLoad, int valAC, int valHeater, int valLight) {
   if (!lightOn ){
     if (totalLoad + valLight <= totalLoadThreshold ) {
     lightOn = true;
-    digitalWrite(ledLight, HIGH);
+    digitalWrite(ledLight, LOW);
     Serial.println("Lights restored.");
     totalLoad+=valLight;
     return;
@@ -103,7 +109,7 @@ void restoreLoad(int totalLoad, int valAC, int valHeater, int valLight) {
   {
   if (!heaterOn && totalLoad + valHeater <= totalLoadThreshold) {
     heaterOn = true;
-    digitalWrite(ledHeater, HIGH);
+    digitalWrite(ledHeater, LOW);
     Serial.println("Heater restored.");
     totalLoad+=valHeater;
     return;
@@ -115,7 +121,7 @@ void restoreLoad(int totalLoad, int valAC, int valHeater, int valLight) {
   if(heaterOn) {
     if (!acOn && totalLoad + valAC <= totalLoadThreshold) {
     acOn = true;
-    digitalWrite(ledAC, HIGH);
+    digitalWrite(ledAC, LOW);
     Serial.println("AC restored.");
       totalLoad+=valAC;
     return;
