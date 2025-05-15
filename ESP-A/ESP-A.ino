@@ -13,9 +13,9 @@ void setup() {
   pinMode(ledHeater, OUTPUT);
   pinMode(ledLight, OUTPUT);
   Serial.println("System started. All devices ON.");
-  digitalWrite(ledAC, 1);
-  digitalWrite(ledHeater, 1);
-  digitalWrite(ledLight, 1);
+  digitalWrite(ledAC, LOW);
+  digitalWrite(ledHeater, LOW);
+  digitalWrite(ledLight, LOW);
 
 }
 
@@ -30,9 +30,9 @@ void loop() {
 
   // sensor handlres
   checkSensors();
-  digitalWrite(ledAC, (!lg && !lw && pot1)); // reverse the logic for relay(Active LOW)
-  digitalWrite(ledHeater, (!lg && pot2));
-  digitalWrite(ledLight, (!lg && pot3));
+  digitalWrite(ledAC, !(!lg && !lw && pot1)); // reverse the logic for relay(Active LOW)
+  digitalWrite(ledHeater, !(!lg && pot2));
+  digitalWrite(ledLight, !(!lg && pot3));
   Serial.print("lg: ");
   Serial.println(lg);
   Serial.print("lw: ");
