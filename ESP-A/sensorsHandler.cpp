@@ -1,9 +1,8 @@
-const int gasSensorPin = A0;
-const int waterSensorPin = A1;
+#include "sensorsHandler.h"
 
-const int led1 = 8;
-const int led2 = 9;
-const int led3 = 10;
+const int gasSensorPin = A3;
+const int waterSensorPin = A4;
+
 
 bool led1_state;
 bool led2_state;
@@ -22,17 +21,7 @@ bool lw = false;
 int gasValue;
 int waterValue;
   
-void setup() {
-  Serial.begin(9600);
-  pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
-  pinMode(led3, OUTPUT);
-}
 
-void loop() {
-  checkSensors();
-  delay(1000);
-}
 void checkWater(){
   waterValue = analogRead(waterSensorPin);
   Serial.print("water sensor: ");
@@ -53,10 +42,10 @@ void checkWater(){
 }
 void checkGas(){
   gasValue = analogRead(gasSensorPin);
-  Serial.print("Gas sensor: ");
-  Serial.println(gasValue);
-  Serial.print("!lg: ");
-  Serial.println(!lg);
+//  Serial.print("Gas sensor: ");
+//  Serial.println(gasValue);
+//  Serial.print("!lg: ");
+//  Serial.println(!lg);
   if (gasValue >= gasThreshold) {
     if(!lg){
       lg = true;
@@ -72,10 +61,4 @@ void checkGas(){
 void checkSensors(){
   checkWater();
   checkGas();
-  cuttLoads();
-}
-void cuttLoads(){
-  digitalWrite(led1, (!lg && !lw)); // reverse the logic for relay(Active LOW)
-  digitalWrite(led2, (!lg));
-  digitalWrite(led3, (!lg));
 }

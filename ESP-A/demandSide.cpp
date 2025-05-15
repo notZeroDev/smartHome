@@ -1,13 +1,9 @@
-
-// Potentiometer pins
+#include <Arduino.h>
+#include "demandSide.h"
 const int potAC = A0;
 const int potHeater = A1;
 const int potLight = A2;
 
-// LED pins
-const int ledAC = 4;
-const int ledHeater = 5;
-const int ledLight = 6;
 
 // Load states
 bool acOn = true;
@@ -21,36 +17,19 @@ int valLight;
 
 
 // Load leds stated
-bool pot1, pot2, pot3;
+bool pot1 = true, 
+     pot2 = true,
+     pot3 = true;
 
 // Total load threshold
 const int totalLoadThreshold = 500;
 
-void setup() {
-  Serial.begin(9600);
-  
-
-  pinMode(ledAC, OUTPUT);
-  pinMode(ledHeater, OUTPUT);
-  pinMode(ledLight, OUTPUT);
-
-//  digitalWrite(ledAC, HIGH);
-//  digitalWrite(ledHeater, HIGH);
-//  digitalWrite(ledLight, HIGH);
-
- Serial.println("System started. All devices ON.");
-
-}
-
-void loop() {
-  valAC = analogRead(potAC);        // Now updates the global variable
+void checkLoad(){
+  valAC = analogRead(potAC);       
   valHeater = analogRead(potHeater);
   valLight = analogRead(potLight);
   
   load_shed();
-  digitalWrite(ledAC, pot3);
-  digitalWrite(ledHeater, pot2);
-  digitalWrite(ledLight, pot1);
 }
 
 void load_shed(){
@@ -78,11 +57,7 @@ void load_shed(){
   }
 
   delay(500);  
-  
-  
   }
-
-
 
 
 // Cascading Cutoff Function: AC → Heater → Light
