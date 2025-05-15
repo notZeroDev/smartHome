@@ -30,19 +30,6 @@ void setup() {
 }
 
 void loop() {
-//  gasValue = analogRead(gasSensorPin);
-//  checkWater();
-//  checkGas();
-//
-//  if (gasValue > gasThreshold && waterValue > waterThreshold) {
-//    handleBothDanger();
-//  } else if (gasValue > gasThreshold) {
-//    handleGasDanger();
-//  } else if (waterValue > waterThreshold) {
-//    handleWaterDanger();
-//  } else {
-//    handleSafeCondition();
-//  }
   checkSensors();
   delay(1000);
 }

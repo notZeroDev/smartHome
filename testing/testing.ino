@@ -1,21 +1,13 @@
-#define BLYNK_TEMPLATE_ID "TMPL2mW6F50Op"
-#define BLYNK_TEMPLATE_NAME "Quickstart Template"
-#define BLYNK_AUTH_TOKEN "sv1PW5t9-i6HM2bGHWtQWgLFM6SS-FzU"
-#include <BlynkSimpleEsp32.h>
 
-
-
-char ssid[] = "Home";
-char pass[] = "notwelcome0000";
 // Potentiometer pins
-const int potAC = 32;
-const int potHeater = 33;
-const int potLight = 34;
+const int potAC = A0;
+const int potHeater = A1;
+const int potLight = A2;
 
 // LED pins
-const int ledAC = 25;
-const int ledHeater = 26;
-const int ledLight = 27;
+const int ledAC = 4;
+const int ledHeater = 5;
+const int ledLight = 6;
 
 // Load states
 bool acOn = true;
@@ -23,25 +15,28 @@ bool heaterOn = true;
 bool lightOn = true;
 
 // Load value
-  int valAC;
-  int valHeater;
-  int valLight;
+int valAC;
+int valHeater;
+int valLight;
+
+
+// Load leds stated
+bool pot1, pot2, pot3;
 
 // Total load threshold
-const int totalLoadThreshold = 6000;
+const int totalLoadThreshold = 500;
 
 void setup() {
   Serial.begin(9600);
   
-  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
 
   pinMode(ledAC, OUTPUT);
   pinMode(ledHeater, OUTPUT);
   pinMode(ledLight, OUTPUT);
 
-  digitalWrite(ledAC, LOW);
-  digitalWrite(ledHeater, LOW);
-  digitalWrite(ledLight, LOW);
+//  digitalWrite(ledAC, HIGH);
+//  digitalWrite(ledHeater, HIGH);
+//  digitalWrite(ledLight, HIGH);
 
  Serial.println("System started. All devices ON.");
 
@@ -49,33 +44,30 @@ void setup() {
 
 void loop() {
   valAC = analogRead(potAC);        // Now updates the global variable
-  valHeater = 0;
-  valLight = 0;
+  valHeater = analogRead(potHeater);
+  valLight = analogRead(potLight);
   
-  Blynk.run();
   load_shed();
-
+  digitalWrite(ledAC, pot3);
+  digitalWrite(ledHeater, pot2);
+  digitalWrite(ledLight, pot1);
 }
 
 void load_shed(){
-  Serial.println("Total Loads");
+  
+  int loadAC = acOn ? valAC : 0;
+  int loadHeater = heaterOn ? valHeater : 0;
+  int loadLight = lightOn ? valLight : 0;
+
+  int totalLoad = loadAC + loadHeater + loadLight;
+  Serial.print("Total Loads: ");
+  Serial.println(totalLoad);
   Serial.print("AC: ");
   Serial.print(valAC);
   Serial.print("   Heater: ");
   Serial.print(valHeater);
   Serial.print("   Light: ");
   Serial.println(valLight);
-  int loadAC = acOn ? valAC : 0;
-  int loadHeater = heaterOn ? valHeater : 0;
-  int loadLight = lightOn ? valLight : 0;
-
-  int totalLoad = loadAC + loadHeater + loadLight;
-//##########################################
-  Blynk.virtualWrite(V10,valAC);
-  Blynk.virtualWrite(V11,valHeater);
-  Blynk.virtualWrite(V12,valLight);
-  Blynk.virtualWrite(V0,totalLoad );
-//#########################################  
   // Serial.print("Total Load: ");
   // Serial.println(totalLoad);
 
@@ -100,7 +92,8 @@ bool cutOffLoad(int valAC, int valHeater, int valLight, int totalLoad) {
   // Always cut AC first if it's on and we are over threshold
   if (totalLoad > totalLoadThreshold && acOn) {
     acOn = false;
-    digitalWrite(ledAC, HIGH);
+//    digitalWrite(ledAC, LOW);
+    pot3 = false;
     Serial.println("AC has been cut off.");
     totalLoad -= valAC;
     didCut = true;
@@ -109,7 +102,8 @@ bool cutOffLoad(int valAC, int valHeater, int valLight, int totalLoad) {
   // Then cut Heater if needed
   else if (totalLoad > totalLoadThreshold && heaterOn) {
     heaterOn = false;
-    digitalWrite(ledHeater, HIGH);
+//    digitalWrite(ledHeater, LOW);
+    pot2 = false;
     Serial.println("Heater has been cut off.");
     totalLoad -= valHeater;
     didCut = true;
@@ -118,7 +112,8 @@ bool cutOffLoad(int valAC, int valHeater, int valLight, int totalLoad) {
   // Finally cut Lights if needed
   else if (totalLoad > totalLoadThreshold && lightOn) {
     lightOn = false;
-    digitalWrite(ledLight, HIGH);
+//    digitalWrite(ledLight, LOW);
+    pot1 = false;
     Serial.println("Lights have been cut off.");
     didCut = true;
   }
@@ -132,7 +127,8 @@ void restoreLoad(int totalLoad, int valAC, int valHeater, int valLight) {
   if (!lightOn ){
     if (totalLoad + valLight <= totalLoadThreshold ) {
     lightOn = true;
-    digitalWrite(ledLight, LOW);
+//    digitalWrite(ledLight, HIGH);
+    pot1 = true;
     Serial.println("Lights restored.");
     totalLoad+=valLight;
     return;
@@ -143,7 +139,8 @@ void restoreLoad(int totalLoad, int valAC, int valHeater, int valLight) {
   {
   if (!heaterOn && totalLoad + valHeater <= totalLoadThreshold) {
     heaterOn = true;
-    digitalWrite(ledHeater, LOW);
+//    digitalWrite(ledHeater, HIGH);
+    pot2 = true;
     Serial.println("Heater restored.");
     totalLoad+=valHeater;
     return;
@@ -155,7 +152,8 @@ void restoreLoad(int totalLoad, int valAC, int valHeater, int valLight) {
   if(heaterOn) {
     if (!acOn && totalLoad + valAC <= totalLoadThreshold) {
     acOn = true;
-    digitalWrite(ledAC, LOW);
+//    digitalWrite(ledAC, HIGH);
+    pot3 = true;
     Serial.println("AC restored.");
       totalLoad+=valAC;
     return;
