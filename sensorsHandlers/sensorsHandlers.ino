@@ -5,9 +5,23 @@ const int led1 = 8;
 const int led2 = 9;
 const int led3 = 10;
 
+bool led1_state;
+bool led2_state;
+bool led3_state;
+
+
 const int gasThreshold = 450;
 const int waterThreshold = 250;
 
+
+// last states
+bool lg = false;
+bool lw = false;
+
+// sensor values 
+int gasValue;
+int waterValue;
+  
 void setup() {
   Serial.begin(9600);
   pinMode(led1, OUTPUT);
@@ -16,55 +30,65 @@ void setup() {
 }
 
 void loop() {
-  int gasValue = analogRead(gasSensorPin);
-  int waterValue = analogRead(waterSensorPin);
-
-  Serial.print("Gas: ");
-  Serial.print(gasValue);
-  Serial.print(" | Water: ");
-  Serial.println(waterValue);
-
-  if (gasValue > gasThreshold && waterValue > waterThreshold) {
-    handleBothDanger();
-  } else if (gasValue > gasThreshold) {
-    handleGasDanger();
-  } else if (waterValue > waterThreshold) {
-    handleWaterDanger();
-  } else {
-    handleSafeCondition();
-  }
-
+//  gasValue = analogRead(gasSensorPin);
+//  checkWater();
+//  checkGas();
+//
+//  if (gasValue > gasThreshold && waterValue > waterThreshold) {
+//    handleBothDanger();
+//  } else if (gasValue > gasThreshold) {
+//    handleGasDanger();
+//  } else if (waterValue > waterThreshold) {
+//    handleWaterDanger();
+//  } else {
+//    handleSafeCondition();
+//  }
+  checkSensors();
   delay(1000);
 }
-
-void turnOffLoads() {
-  digitalWrite(led1, LOW);
-  digitalWrite(led2, LOW);
-  digitalWrite(led3, LOW);
+void checkWater(){
+  waterValue = analogRead(waterSensorPin);
+  Serial.print("water sensor: ");
+  Serial.println(waterValue);
+  Serial.print("!lg: ");
+  Serial.println(!lg);
+  if (waterValue >= waterThreshold) {
+    if(!lw){
+      lw = true;
+      Serial.println("❌ water Leak detected! Loads OFF"); // replace it with telegram message
+    }
+  } else{
+    if(lw){ 
+      Serial.println("water Returned Back to Normal"); // replace it with telegram message
+      lw = false;
+    }
+  }
 }
-
-void turnOnLoads() {
-  digitalWrite(led1, HIGH);
-  digitalWrite(led2, HIGH);
-  digitalWrite(led3, HIGH);
+void checkGas(){
+  gasValue = analogRead(gasSensorPin);
+  Serial.print("Gas sensor: ");
+  Serial.println(gasValue);
+  Serial.print("!lg: ");
+  Serial.println(!lg);
+  if (gasValue >= gasThreshold) {
+    if(!lg){
+      lg = true;
+      Serial.println("❌ GAS Leak detected! Loads OFF"); // replace it with telegram message
+    }
+  } else{
+    if(lg){ 
+      Serial.println("Gas Returned Back to Normal"); // replace it with telegram message
+      lg = false;
+    }
+  }
 }
-
-void handleGasDanger() {
-  turnOffLoads();
-  Serial.println("❌ Dangerous Gas detected! Loads OFF");
+void checkSensors(){
+  checkWater();
+  checkGas();
+  cuttLoads();
 }
-
-void handleWaterDanger() {
-  turnOffLoads();
-  Serial.println("❌ Water Leak detected! Loads OFF");
-}
-
-void handleBothDanger() {
-  turnOffLoads();
-  Serial.println("❌ Both Gas and Water levels are high! Loads OFF");
-}
-
-void handleSafeCondition() {
-  turnOnLoads();
-  Serial.println("✅ Safe conditions. Loads ON");
+void cuttLoads(){
+  digitalWrite(led1, (!lg && !lw)); // reverse the logic for relay(Active LOW)
+  digitalWrite(led2, (!lg));
+  digitalWrite(led3, (!lg));
 }
