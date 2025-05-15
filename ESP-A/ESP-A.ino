@@ -1,6 +1,6 @@
 #include "demandSide.h"
 #include "sensorsHandler.h"
-
+#include "shiftRegistor.h"
 // LED pins
 const int ledAC = 4;
 const int ledHeater = 5;
@@ -16,6 +16,12 @@ void setup() {
   digitalWrite(ledAC, LOW);
   digitalWrite(ledHeater, LOW);
   digitalWrite(ledLight, LOW);
+
+  // shift registor
+  pinMode(dataPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(latchPin, OUTPUT);
+  sendShiftRegisterOutput();
 
 }
 
@@ -43,5 +49,8 @@ void loop() {
   Serial.println(pot2);
   Serial.print("pot3: ");
   Serial.println(pot3);
+
+  // shift registor
+  // setOutputPin(0, 1); // example
   delay(1000);
 }
