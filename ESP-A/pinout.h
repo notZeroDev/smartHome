@@ -15,4 +15,9 @@ extern const int ledAC;
 extern const int ledHeater;
 extern const int ledLight;
 
+// shift registor
+extern const int dataPin;   // DS
+extern const int clockPin;  // SHCP
+extern const int latchPin;  // STCP
+
 #endif

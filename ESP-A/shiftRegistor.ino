@@ -1,8 +1,4 @@
 #include "shiftRegistor.h"
-// Pin Definitions
-const int dataPin = 6;   // DS
-const int clockPin = 4;  // SHCP
-const int latchPin = 5;  // STCP
 
 // Output state for all 16 pins (2 x 8-bit shift registers)
 bool outputStates[16] = {0};  // Initialized to LOW

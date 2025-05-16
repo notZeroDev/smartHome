@@ -2,7 +2,7 @@
 #include "sensorsHandler.h"
 // #include "shiftRegistor.h"
 #include "pinout.h"
-
+#include "../public/env.h"
 void setup() {
   Serial.begin(115200);
 
@@ -25,21 +25,20 @@ void setup() {
   // pinMode(clockPin, OUTPUT);
   // pinMode(latchPin, OUTPUT);
   // sendShiftRegisterOutput();
-
 }
 
 void loop() {
-  
-  
+
+
   // demand side
   checkLoad();
-//  digitalWrite(ledAC, pot3);
-//  digitalWrite(ledHeater, pot2);
-//  digitalWrite(ledLight, pot1);
+  //  digitalWrite(ledAC, pot3);
+  //  digitalWrite(ledHeater, pot2);
+  //  digitalWrite(ledLight, pot1);
 
   // sensor handlres
   checkSensors();
-  digitalWrite(ledAC, !(!lg && !lw && pot1)); // reverse the logic for relay(Active LOW)
+  digitalWrite(ledAC, !(!lg && !lw && pot1));  // reverse the logic for relay(Active LOW)
   digitalWrite(ledHeater, !(!lg && pot2));
   digitalWrite(ledLight, !(!lg && pot3));
   Serial.print("lg: ");
