@@ -3,9 +3,6 @@
 
 #include <Arduino.h>
 
-// Sensor Pins
-extern const int gasSensorPin;
-extern const int waterSensorPin;
 
 // LED States
 extern bool led1_state;

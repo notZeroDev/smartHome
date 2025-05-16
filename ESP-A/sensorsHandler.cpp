@@ -1,7 +1,7 @@
 #include "sensorsHandler.h"
+#include "pinout.h"
 
-const int gasSensorPin = A3;
-const int waterSensorPin = A4;
+
 
 
 bool led1_state;
@@ -9,8 +9,8 @@ bool led2_state;
 bool led3_state;
 
 
-const int gasThreshold = 450;
-const int waterThreshold = 250;
+const int gasThreshold = 1800;
+const int waterThreshold = 1000;
 
 
 // last states

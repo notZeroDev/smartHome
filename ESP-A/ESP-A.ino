@@ -1,12 +1,10 @@
 #include "demandSide.h"
 #include "sensorsHandler.h"
-#include "shiftRegistor.h"
-// LED pins
-const int ledAC = 4;
-const int ledHeater = 5;
-const int ledLight = 6;
+// #include "shiftRegistor.h"
+#include "pinout.h"
+
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // demand side
   pinMode(ledAC, OUTPUT);
@@ -17,11 +15,16 @@ void setup() {
   digitalWrite(ledHeater, LOW);
   digitalWrite(ledLight, LOW);
 
+
+  // sensors handler
+  pinMode(gasSensorPin, INPUT);
+  pinMode(waterSensorPin, INPUT);
+
   // shift registor
-  pinMode(dataPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
-  pinMode(latchPin, OUTPUT);
-  sendShiftRegisterOutput();
+  // pinMode(dataPin, OUTPUT);
+  // pinMode(clockPin, OUTPUT);
+  // pinMode(latchPin, OUTPUT);
+  // sendShiftRegisterOutput();
 
 }
 

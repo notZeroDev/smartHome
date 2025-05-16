@@ -1,10 +1,6 @@
 #ifndef DEMANDSIDE
 #define DEMANDSIDE
 
-// Potentiometer pins
-extern const int potAC;
-extern const int potHeater;
-extern const int potLight;
 
 // Load states
 extern bool acOn;

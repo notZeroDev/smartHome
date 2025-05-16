@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include "demandSide.h"
-const int potAC = A0;
-const int potHeater = A1;
-const int potLight = A2;
+#include "pinout.h"
 
 
 // Load states
@@ -22,7 +20,7 @@ bool pot1 = true,
      pot3 = true;
 
 // Total load threshold
-const int totalLoadThreshold = 500;
+const int totalLoadThreshold = 5000;
 
 void checkLoad(){
   valAC = analogRead(potAC);       
