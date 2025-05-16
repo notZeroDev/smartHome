@@ -11,7 +11,7 @@ const int potLight = 32;    // ADC safe
 
 // Sensors Handler
 const int gasSensorPin = 33;   
-// const int waterSensorPin = 25;  // not working and will be transfared to ESP-b
+const int waterSensorPin = 25;  // not working and will be transfared to ESP-b
 
 // LED pins (digital output)
 const int ledAC = 26;
