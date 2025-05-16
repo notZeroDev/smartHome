@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include "env.h"
+#include "../env.h"
 #include <Keypad.h>
-#include <LiquidCrystal_I2C.h>
+// #include <LiquidCrystal_I2C.h>
 #include <ESP32Servo.h>
 #include <Wire.h>
 #include <WiFiClientSecure.h>
@@ -13,11 +13,11 @@
 
 WiFiClientSecure secured_client;
 UniversalTelegramBot bot(BOT_TOKEN, secured_client);
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+// LiquidCrystal_I2C lcd(0x27, 16, 2);
 Servo myServo;
 byte numTrials = 0;
 const byte Rows = 4;
-const byte Cols = 3;
+const byte Cols = 4;
 char hexakeys[Rows][Cols] = {
   {'1','2','3'},
   {'4','5','6'},
@@ -44,12 +44,13 @@ void setup() {
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
   secured_client.setCACert(TELEGRAM_CERTIFICATE_ROOT);
   Wire.begin(21, 22);
-  lcd.init();
-  lcd.backlight();
+  // lcd.init();
+  // lcd.backlight();
   myServo.attach(18);
   myServo.write(0);
   pinMode(BuzzerPin,OUTPUT);
   makeTelegramCall("Testing calls from ESP 32");
+  bot.sendMessage(CHAT_ID,"Hello from ESP32", "");
 }
 
 void loop() {
@@ -58,16 +59,17 @@ void loop() {
 }
 
 void print(String str1, int len) {
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print(str1);
+  // lcd.clear();
+  // lcd.setCursor(0, 0);
+  // lcd.print(str1);
+  Serial.println(str1);
   hiddenPad = "";
   if (len > 0 && len <= 6) {
 	for (int i = 0; i < len; i++) {
   	   hiddenPad += '*';
     }
-  lcd.setCursor(0, 1);
-  lcd.print(hiddenPad);
+  // lcd.setCursor(0, 1);
+  // lcd.print(hiddenPad);
   }
 }
 
@@ -167,7 +169,7 @@ if (customKey){
       delay(700);
       noTone(BuzzerPin);     
       pad = "";
-      lcd.clear();
+      // lcd.clear();
       numTrials++;
       Blynk.virtualWrite (V1, "The password has been entered unsuccessfully");
       state = true;
