@@ -16,6 +16,8 @@ void setup() {
 
   // blynk
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+  
+  setupTelegramBot();
   sendTelegramMessage("testing from ESP32");
   makeTelegramCall("test call");
 

@@ -1,11 +1,16 @@
 #include <HTTPClient.h>
 #include <UniversalTelegramBot.h>
+#include <WiFiClientSecure.h>
 #include "env.h"
 #include <Arduino.h>
 
 WiFiClientSecure secured_client;
 UniversalTelegramBot bot(BOT_TOKEN, secured_client);
 
+void setupTelegramBot() {
+  secured_client.setCACert(TELEGRAM_CERTIFICATE_ROOT);
+  // You can add more bot setup logic here if needed
+}
 void makeTelegramCall(String msg){
   String encodedMsg = "";
   for (int i = 0; i < msg.length(); i++) {
@@ -16,7 +21,6 @@ void makeTelegramCall(String msg){
       encodedMsg += c;
     }
   }
-
   String url = "http://api.callmebot.com/start.php?source=web&user=" + String(TELEGRAM_USER) + "&text=" + encodedMsg + "&lang=en-GB-Standard-B";
   // Send HTTP GET request
   if (WiFi.status() == WL_CONNECTED) {
