@@ -23,6 +23,10 @@ extern const int totalLoadThreshold;
 void checkLoad();
 void load_shed();
 
+// getters
+int getACVal();
+int getHeaterVal();
+int getLightVal();
 
 
 // Cascading Cutoff Function: AC → Heater → Light

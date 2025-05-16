@@ -22,10 +22,21 @@ bool pot1 = true,
 // Total load threshold
 const int totalLoadThreshold = 5000;
 
+
+int getACVal(){
+  return analogRead(potAC);
+}
+int getHeaterVal(){
+  return analogRead(potHeater);
+}
+int getLightVal(){
+  return analogRead(potLight);
+}
+
 void checkLoad(){
-  valAC = analogRead(potAC);       
-  valHeater = analogRead(potHeater);
-  valLight = analogRead(potLight);
+  valAC = getACVal();       
+  valHeater = getHeaterVal();
+  valLight = getLightVal();
   
   load_shed();
 }
@@ -45,6 +56,7 @@ void load_shed(){
   Serial.print(valHeater);
   Serial.print("   Light: ");
   Serial.println(valLight);
+
   // Serial.print("Total Load: ");
   // Serial.println(totalLoad);
 

@@ -3,8 +3,18 @@
 // #include "shiftRegistor.h"
 #include "pinout.h"
 #include "../public/env.h"
+// #include <BlynkSimpleEsp32.h>
+
+
+
+
+
 void setup() {
   Serial.begin(115200);
+
+  // blynk
+  // Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+
 
   // demand side
   pinMode(ledAC, OUTPUT);
@@ -28,10 +38,12 @@ void setup() {
 }
 
 void loop() {
-
+  // blynk
+  // Blynk.run();
 
   // demand side
   checkLoad();
+  updatVPin();
   //  digitalWrite(ledAC, pot3);
   //  digitalWrite(ledHeater, pot2);
   //  digitalWrite(ledLight, pot1);
@@ -55,4 +67,11 @@ void loop() {
   // shift registor
   // setOutputPin(0, 1); // example
   delay(1000);
+}
+void updatVPin(){
+  int acVal = getACVal(), HeaterVal = getHeaterVal(), lightVal = getLightVal();
+  Blynk.virtualWrite(V10,acVal);
+  Blynk.virtualWrite(V11,HeaterVal);
+  Blynk.virtualWrite(V12,lightVal);
+  Blynk.virtualWrite(V0, acVal + HeaterVal + lightVal);
 }

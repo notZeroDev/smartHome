@@ -1,21 +1,24 @@
 #include "pinout.h"
 #include <Arduino.h>
 
-// demand side
-const int potAC = 34;
-const int potHeater = 35;
-const int potLight = 32;
+#include "pinout.h"
+#include <Arduino.h>
 
-// sensors Handler
-const int gasSensorPin = 33;
-const int waterSensorPin = 13;
+// Potentiometer pins (ADC input)
+const int potAC = 34;       // Input only, safe ADC
+const int potHeater = 35;   // Input only, safe ADC
+const int potLight = 32;    // ADC safe
 
-// LED pins
-const int ledAC = 25;
-const int ledHeater = 26;
-const int ledLight = 27;
+// Sensors Handler
+const int gasSensorPin = 33;   
+// const int waterSensorPin = 25;  // not working and will be transfared to ESP-b
 
-// shift registor
-const int dataPin = 6; 
-const int clockPin = 4;  
-const int latchPin = 5;  
+// LED pins (digital output)
+const int ledAC = 26;
+const int ledHeater = 27;
+const int ledLight = 14;
+
+// Shift register pins (digital output)
+// const int dataPin = 13;   // safe digital output
+// const int clockPin = 4;   // safe digital output
+// const int latchPin = 5;   // safe digital output

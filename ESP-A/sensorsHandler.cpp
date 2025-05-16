@@ -26,6 +26,8 @@ void checkWater(){
   waterValue = analogRead(waterSensorPin);
   Serial.print("water sensor: ");
   Serial.println(waterValue);
+  Serial.print("Gas sensor: ");
+  Serial.println(gasValue);
   Serial.print("!lg: ");
   Serial.println(!lg);
   if (waterValue >= waterThreshold) {
