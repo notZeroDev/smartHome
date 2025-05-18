@@ -7,15 +7,18 @@
 #include <WiFiClientSecure.h>
 #include "../public/telegram.ino"
 
-
-
+void checkSerial();
+String formatDigit(String);
 
 void setup() {
   Serial.begin(115200);
   
-
+  
   // blynk
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+  
+  // Serial communcation with esp32
+  Serial2.begin(115200, SERIAL_8N1, 16, 17); // RX=GPIO16, TX=GPIO17
   
   setupTelegramBot();
   sendTelegramMessage("testing from ESP32");
@@ -43,6 +46,9 @@ void setup() {
 }
 
 void loop() {
+  checkSerial();
+
+
   // blynk
   Blynk.run();
 
@@ -54,20 +60,11 @@ void loop() {
   //  digitalWrite(ledLight, pot1);
 
   // sensor handlres
-  checkSensors();
+  checkGas();
+  // update Loads
   digitalWrite(ledAC, !(!lg && !lw && pot1));  // reverse the logic for relay(Active LOW)
   digitalWrite(ledHeater, !(!lg && pot2));
   digitalWrite(ledLight, !(!lg && pot3));
-  Serial.print("lg: ");
-  Serial.println(lg);
-  Serial.print("lw: ");
-  Serial.println(lw);
-  Serial.print("pot1: ");
-  Serial.println(pot1);
-  Serial.print("pot2: ");
-  Serial.println(pot2);
-  Serial.print("pot3: ");
-  Serial.println(pot3);
 
   // shift registor
   // setOutputPin(0, 1); // example
@@ -80,3 +77,41 @@ void updatVPin(){
   // Blynk.virtualWrite(V12,lightVal);
   // Blynk.virtualWrite(V0, acVal + HeaterVal + lightVal);
 }
+void checkSerial(){
+  if (Serial2.available()) {
+    String incoming = Serial2.readStringUntil('\n');
+    incoming.trim();
+    if (incoming == "WATER HIGH"){
+    lw = true;
+    makeTelegramCall("water leakage on your house");
+    } 
+    else if (incoming == "WATER LOW") lw = false;
+  }
+}
+String formatDigit(String input){
+  String output = "";
+  int len =input.length();
+
+  for (int i = 0; i < len; i++) {
+    output +=input[i];
+    // Add dash after every 4 digits except the last group
+    if ((i + 1) % 4 == 0 && (i + 1) < len) {
+      output += '-';
+    }
+  }
+
+  return output;
+}
+BLYNK_WRITE(V1) {
+    int value = param.asInt();
+    if (value == 1) {
+    randomSeed(analogRead(0)); 
+    String otp = String(random(10000000, 100000000));
+    String formatedOTP = formatDigit(otp);
+    //! send it via serial
+    Serial2.print("OTP: ");
+    Serial2.println(otp);
+    Blynk.virtualWrite (V1,formatedOTP);
+    sendTelegramMessage(formatedOTP);
+    }
+  }

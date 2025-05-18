@@ -1,5 +1,6 @@
 #include <Arduino.h>
 //#include "../public/env.h"
+#include <SoftwareSerial.h>
 
 #include <Keypad.h>
 #include <LiquidCrystal_I2C.h>
@@ -12,10 +13,14 @@
 // #include <HTTPClient.h>
 // #include "../public/telegram.ino"
 #include "pinout.h"
+#include "tones.h"
 // #include "../public/helper.h"
 
+const int threshold = 500;  // adjust based on your sensor output (analog value)
+bool waterPresent = false;
+bool lastWaterState = false;
 
-
+SoftwareSerial Serial2(2, 3);  // RX = pin 2, TX = pin 3
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 Servo myServo;
 byte numTrials = 0;
@@ -35,39 +40,36 @@ boolean state =true;
 
 
 // functions prototype
+void checkSerial();
+void checkWater();
 void openDoor(); 
 void smartLock();
 void print(String, int=0);
 String formatDigit(String);
 
 void setup() {
-  pinMode(13, OUTPUT);
-  digitalWrite(13, HIGH);
   Serial.begin(115200);
+  Serial2.begin(115200);
   Wire.begin();
   lcd.init();
   lcd.backlight();
   myServo.attach(SERVO_PIN);
   myServo.write(0);
   pinMode(BuzzerPin,OUTPUT);
-
+  pinMode(WATER_PIN, INPUT);
   
 }
 
 void loop() {
-  // Blynk.run();
+  checkSerial();
+  checkWater();
   smartLock();
-//  tone(BuzzerPin, 1000);  // Play 1 kHz tone
-//  delay(500);              // Wait half a second
-//  noTone(BuzzerPin);      // Stop sound
-//  delay(500);              // Wait again
 }
 
 void print(String str1, int len) {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(str1);
-//  Serial.println(str1);
   hiddenPad = "";
   if (len > 0 && len <= 6) {
   for (int i = 0; i < len; i++) {
@@ -83,19 +85,13 @@ void print(String str1, int len) {
 void smartLock() {
   if (numTrials == 3){
     print("LOCKED");
-    // Blynk.virtualWrite (V1, "Intruder Alert");
-    delay(1000);
-    tone(BuzzerPin, 600);
-    delay(2000);
-    noTone(BuzzerPin); 
+    locked_tone();
     return;
   }
 
   char customKey = customKeypad.getKey();
-if (customKey){
-  tone(BuzzerPin, 1000);    // 1 kHz tone
-  delay(50);                // short beep
-  noTone(BuzzerPin);
+  if (customKey){
+  click_tone();
 
   if(customKey=='*'){  //if the key pressed is * we will delete one character from pad
     if(pad.length() <= 1){  //if pad already has one or zero chars
@@ -111,15 +107,8 @@ if (customKey){
 
   else if (customKey=='#'){ // else if # is entered we go check if password is correct
     if (pad == HomePassword){
-      tone(BuzzerPin, 800);
-delay(150);
-tone(BuzzerPin, 1000);
-delay(150);
-tone(BuzzerPin, 1200);
-delay(200);
-noTone(BuzzerPin);
-
-delay(500); // small pause before door opens
+      success_tone();
+      delay(500); // small pause before door opens
       print("Correct Password");
       delay(2000);
       openDoor();
@@ -127,14 +116,7 @@ delay(500); // small pause before door opens
       state = true;
     }
     else if (pad == otp){
-      tone(BuzzerPin, 1200);
-      delay(150);
-      tone(BuzzerPin, 1000);
-      delay(150);
-      tone(BuzzerPin, 800);
-      delay(200);
-      noTone(BuzzerPin);
-    
+      otp_tone();
       delay(500);
       print("OTP Used");
       openDoor();
@@ -146,10 +128,7 @@ delay(500); // small pause before door opens
     else {
       
       for (int i = 0; i < 2; i++) {
-      tone(BuzzerPin, 500);   // Lower-pitch error tone
-      delay(300);
-      noTone(BuzzerPin);
-      delay(100);
+      wrong_tone();
       }
       print("Wrong password");   
       pad = "";
@@ -162,11 +141,11 @@ delay(500); // small pause before door opens
 
   else {  // the key entered is neither * nor # 
     Serial.println(customKey);
-    if (pad.length() < 6) {
+    if (pad.length() < 8) {
       pad += customKey;
     }
     else {
-      print("Max 6 digits");
+      print("Max 8 digits");
       delay(2000);
     }
     print("Password:", pad.length());
@@ -189,15 +168,36 @@ void openDoor() {
   // Blynk.virtualWrite (V1, "Someone Opened the Door");
   numTrials = 0;
 }
+void checkSerial() {
+  if (Serial2.available()) {
+    String incoming = Serial2.readStringUntil('\n');
 
-// BLYNK_WRITE(V0) {
-//   int value = param.asInt();
-//   if (value == 1) {
-//   randomSeed(analogRead(0)); 
-//   otp = String(random(10000000, 100000000));
-//   String formatedOTP = formatDigit(otp);
-//   Blynk.virtualWrite (V1,formatedOTP);
-//   bot.sendMessage(CHAT_ID,formatedOTP, "");
-//   delay(500);
-//   }
-// }
+    incoming.trim();  // remove whitespace/newlines
+    Serial.print("Receieved FROM esp32: ");
+    Serial.println(incoming);
+    // Check if message starts with "OTP: "
+    if (incoming.startsWith("OTP: ")) {
+      // Extract substring after "OTP: " (6 characters)
+      otp = incoming.substring(5);
+      // Now otp holds the value sent from ESP32
+    }
+  }
+}
+void checkWater(){
+  int sensorValue = analogRead(WATER_PIN);
+
+  // Determine if water is detected (above threshold)
+  waterPresent = (sensorValue > threshold);
+
+  // Check for rising edge (water detected)
+  if (waterPresent && !lastWaterState) {
+    Serial2.println("WATER HIGH");
+  }
+
+  // Check for falling edge (water gone)
+  if (!waterPresent && lastWaterState) {
+    Serial2.println("WATER LOW");
+  }
+
+  lastWaterState = waterPresent;
+}

@@ -10,7 +10,6 @@ bool led3_state;
 
 
 const int gasThreshold = 1800;
-const int waterThreshold = 1000;
 
 
 // last states
@@ -19,29 +18,9 @@ bool lw = false;
 
 // sensor values 
 int gasValue;
-int waterValue;
   
 
-void checkWater(){
-  waterValue = analogRead(waterSensorPin);
-  Serial.print("water sensor: ");
-  Serial.println(waterValue);
-  Serial.print("Gas sensor: ");
-  Serial.println(gasValue);
-  Serial.print("!lg: ");
-  Serial.println(!lg);
-  if (waterValue >= waterThreshold) {
-    if(!lw){
-      lw = true;
-      Serial.println("❌ water Leak detected! Loads OFF"); // replace it with telegram message
-    }
-  } else{
-    if(lw){ 
-      Serial.println("water Returned Back to Normal"); // replace it with telegram message
-      lw = false;
-    }
-  }
-}
+
 void checkGas(){
   gasValue = analogRead(gasSensorPin);
 //  Serial.print("Gas sensor: ");
@@ -59,8 +38,4 @@ void checkGas(){
       lg = false;
     }
   }
-}
-void checkSensors(){
-  checkWater();
-  checkGas();
 }
