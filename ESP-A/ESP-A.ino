@@ -2,18 +2,40 @@
 #include "sensorsHandler.h"
 // #include "shiftRegistor.h"
 #include "pinout.h"
-#include "../public/env.h"
+#include "env.h"
 #include <BlynkSimpleEsp32.h>
 #include <WiFiClientSecure.h>
-#include "../public/telegram.ino"
+#include <MFRC522v2.h>
+#include <MFRC522DriverSPI.h>
+//#include <MFRC522DriverI2C.h>
+#include <MFRC522DriverPinSimple.h>
+#include <MFRC522Debug.h> 
+#include "telegram.h"
+#include <map>
+#include <string>
 
+std::map<String, String> uidToName = {
+  {"40625b1b", "Mohamed"},
+  {"819b4b27", "Marwan"},
+};
 void checkSerial();
 String formatDigit(String);
+bool cardPresent = false;  // Make sure this is global!
 
+// Create the ss_pin object before driver
+MFRC522DriverPinSimple ss_pin(rfidSS);
+
+// Create the SPI driver instance (note the correct constructor params)
+// The SPIClass instance is usually "SPI" for default SPI on ESP32.
+// The SPISettings are optional, defaults are usually fine.
+MFRC522DriverSPI driver(ss_pin, SPI);  
+
+MFRC522 mfrc522(driver);
 void setup() {
   Serial.begin(115200);
-  
-  
+  Serial.println("HELLO FROM SERIAL");
+
+  SPI.begin(spiSCK, spiMISO, spiMOSI);
   // blynk
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
   
@@ -36,13 +58,15 @@ void setup() {
 
   // sensors handler
   pinMode(gasSensorPin, INPUT);
-  pinMode(waterSensorPin, INPUT);
 
   // shift registor
   // pinMode(dataPin, OUTPUT);
   // pinMode(clockPin, OUTPUT);
   // pinMode(latchPin, OUTPUT);
   // sendShiftRegisterOutput();
+  mfrc522.PCD_Init();    // Init MFRC522 board.
+  MFRC522Debug::PCD_DumpVersionToSerial(mfrc522, Serial);
+  Serial.println(F("Scan PICC to see UID"));
 }
 
 void loop() {
@@ -55,9 +79,9 @@ void loop() {
   // demand side
   checkLoad();
   updatVPin();
-  //  digitalWrite(ledAC, pot3);
-  //  digitalWrite(ledHeater, pot2);
-  //  digitalWrite(ledLight, pot1);
+   digitalWrite(ledAC, pot3);
+   digitalWrite(ledHeater, pot2);
+   digitalWrite(ledLight, pot1);
 
   // sensor handlres
   checkGas();
@@ -68,7 +92,32 @@ void loop() {
 
   // shift registor
   // setOutputPin(0, 1); // example
-  delay(1000);
+  // If a new card is present and not already marked as present
+  if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
+    if (!cardPresent) {
+      cardPresent = true;  // Mark card as present
+
+      // Save UID as string
+      String uidString = "";
+      for (byte i = 0; i < mfrc522.uid.size; i++) {
+        if (mfrc522.uid.uidByte[i] < 0x10) {
+          uidString += "0";
+        }
+        uidString += String(mfrc522.uid.uidByte[i], HEX);
+      }
+      auto it = uidToName.find(uidString);
+      if (it != uidToName.end()) {
+        Serial.println("Hello, " + it->second);
+      } else {
+        Serial.println("Unknown tag!");
+      }
+      // uidString.toUpperCase();
+      Serial.println(uidString);
+      Blynk.virtualWrite(V15, uidString);
+    }
+  } else if (!mfrc522.PICC_IsNewCardPresent()) {
+    cardPresent = false; // Reset flag when card is removed
+  }
 }
 void updatVPin(){
   int acVal = getACVal(), HeaterVal = getHeaterVal(), lightVal = getLightVal();
@@ -103,15 +152,15 @@ String formatDigit(String input){
   return output;
 }
 BLYNK_WRITE(V1) {
-    int value = param.asInt();
-    if (value == 1) {
+  Serial.println("New OTP Generated");
+  int value = param.asInt();
+  if (value == 1) {
     randomSeed(analogRead(0)); 
     String otp = String(random(10000000, 100000000));
     String formatedOTP = formatDigit(otp);
-    //! send it via serial
     Serial2.print("OTP: ");
     Serial2.println(otp);
     Blynk.virtualWrite (V1,formatedOTP);
     sendTelegramMessage(formatedOTP);
-    }
   }
+}

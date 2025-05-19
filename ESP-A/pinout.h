@@ -8,12 +8,18 @@ extern const int potLight;
 
 // sensors Handler
 extern const int gasSensorPin;
-extern const int waterSensorPin;
 
 // LED pins
 extern const int ledAC;
 extern const int ledHeater;
 extern const int ledLight;
+
+// RFID (MFRC522 via SPI)
+extern const int rfidSS;
+extern const int rfidRST;
+extern const int spiSCK;
+extern const int spiMOSI;
+extern const int spiMISO;
 
 // shift registor
 extern const int dataPin;   // DS

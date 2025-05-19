@@ -1,6 +1,6 @@
-#include "sensorsHandler.h"
+# include "sensorsHandler.h"
 #include "pinout.h"
-
+#include "telegram.h"
 
 
 
@@ -29,12 +29,12 @@ void checkGas(){
 //  Serial.println(!lg);
   if (gasValue >= gasThreshold) {
     if(!lg){
+      // Gas Detected
+      makeTelegramCall("Gas Leakage in your house");
       lg = true;
-      Serial.println("❌ GAS Leak detected! Loads OFF"); // replace it with telegram message
     }
   } else{
     if(lg){ 
-      Serial.println("Gas Returned Back to Normal"); // replace it with telegram message
       lg = false;
     }
   }

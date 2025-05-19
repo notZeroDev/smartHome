@@ -1,6 +1,8 @@
+#include "telegram.h"
 #include <HTTPClient.h>
 #include <UniversalTelegramBot.h>
 #include <WiFiClientSecure.h>
+#include <WiFi.h> 
 #include "env.h"
 #include <Arduino.h>
 

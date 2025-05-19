@@ -11,7 +11,13 @@ const int potLight = 32;    // ADC safe
 
 // Sensors Handler
 const int gasSensorPin = 33;   
-const int waterSensorPin = 25;  // not working and will be transfared to ESP-b
+
+// RFID (MFRC522 via SPI)
+const int rfidSS = 5;
+const int rfidRST = 22;
+const int spiSCK = 18;  
+const int spiMOSI = 23;
+const int spiMISO = 19;
 
 // LED pins (digital output)
 const int ledAC = 26;

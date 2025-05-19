@@ -1,0 +1,2 @@
+81 9B 4B 27 // nfc card
+40 62 5B 1B // nfc tag
