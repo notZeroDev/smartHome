@@ -12,8 +12,11 @@
 #define CHAT_ID "Your_Chat_ID"
 #define TELEGRAM_USER "Your_Telegram_User"
 
+// IFTTT Authentication
+#define IFTTT_AUTH "Your_IFTTT_AUTH"
+
 // Wi-Fi credentials
-char ssid[] = "Your_WiFi_SSID";
-char pass[] = "Your_WiFi_Password";
+extern const char* ssid;
+extern const char* pass;
 
 #endif
