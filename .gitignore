@@ -3,4 +3,4 @@ ESP-A/env.cpp
 ESP-A/.vscode
 ESP-CAM/env.h
 ESP-CAM/env.cpp
-libraries
+libraries/
