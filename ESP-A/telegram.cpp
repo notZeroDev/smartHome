@@ -2,18 +2,20 @@
 #include <HTTPClient.h>
 #include <UniversalTelegramBot.h>
 #include <WiFiClientSecure.h>
-#include <WiFi.h> 
+#include <WiFi.h>
 #include "env.h"
+#include "https.h"
 #include <Arduino.h>
 
 WiFiClientSecure secured_client;
 UniversalTelegramBot bot(BOT_TOKEN, secured_client);
-
+bool enableMessage = true;
+bool enableCalls = true;
 void setupTelegramBot() {
   secured_client.setCACert(TELEGRAM_CERTIFICATE_ROOT);
-  // You can add more bot setup logic here if needed
 }
-void makeTelegramCall(String msg){
+void makeTelegramCall(String msg) {
+  if (!enableCalls) return;
   String encodedMsg = "";
   for (int i = 0; i < msg.length(); i++) {
     char c = msg.charAt(i);
@@ -23,27 +25,9 @@ void makeTelegramCall(String msg){
       encodedMsg += c;
     }
   }
-  String url = "http://api.callmebot.com/start.php?source=web&user=" + String(TELEGRAM_USER) + "&text=" + encodedMsg + "&lang=en-GB-Standard-B";
-  // Send HTTP GET request
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.begin(url);  // Prepare URL
-    int httpResponseCode = http.GET();
-
-    if (httpResponseCode > 0) {
-      Serial.print("HTTP Response code: ");
-      Serial.println(httpResponseCode);
-      String response = http.getString();
-      Serial.println("Response:");
-      Serial.println(response);
-    } else {
-      Serial.print("Error code: ");
-      Serial.println(httpResponseCode);
-    }
-    http.end();
-  }
+  makeHTTPRequest("http://api.callmebot.com/start.php?source=web&user=" + String(TELEGRAM_USER) + "&text=" + encodedMsg + "&lang=en-GB-Standard-B");
 }
-void sendTelegramMessage(String msg){// wifi telegram
-
+void sendTelegramMessage(String msg) {
+  if (!enableMessage) return;
   bot.sendMessage(CHAT_ID, msg, "");
 }

@@ -14,6 +14,9 @@
 #define CHAT_ID "1367972707"
 #define TELEGRAM_USER "@zer0Developer"
 
+// IFTTT
+#define IFTTT_AUTH "irEfei9I3hxBqbbxTxvR7qEM0gB4WycF2rkTpEZaMn1"
+
 // Wi-Fi credentials
 extern const char* ssid;
 extern const char* pass;

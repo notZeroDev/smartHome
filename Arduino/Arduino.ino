@@ -1,26 +1,17 @@
 #include <Arduino.h>
-//#include "../public/env.h"
 #include <SoftwareSerial.h>
-
 #include <Keypad.h>
 #include <LiquidCrystal_I2C.h>
 #include <Servo.h>
 #include <Wire.h>
-// #include <WiFiClientSecure.h>
-// #include <UniversalTelegramBot.h>
-// #include <WiFi.h>
-// #include <BlynkSimpleEsp32.h>
-// #include <HTTPClient.h>
-// #include "../public/telegram.ino"
 #include "pinout.h"
 #include "tones.h"
-// #include "../public/helper.h"
 
 const int threshold = 500;  // adjust based on your sensor output (analog value)
 bool waterPresent = false;
 bool lastWaterState = false;
 
-SoftwareSerial Serial2(2, 3);  // RX = pin 2, TX = pin 3
+SoftwareSerial Serial2(SERIAL_RX, SERIAL_TX);  // RX = pin 2, TX = pin 3
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 Servo myServo;
 byte numTrials = 0;
@@ -37,12 +28,14 @@ String HomePassword = "147";
 String otp = "111";
 String hiddenPad = "";
 boolean state =true;
+boolean locked = false;
 
 
 // functions prototype
 void checkSerial();
 void checkWater();
-void openDoor(); 
+void openDoor(String); 
+void wrongPass(String = "Wrong Password");
 void smartLock();
 void print(String, int=0);
 String formatDigit(String);
@@ -54,7 +47,7 @@ void setup() {
   lcd.init();
   lcd.backlight();
   myServo.attach(SERVO_PIN);
-  myServo.write(0);
+  myServo.write(90);
   pinMode(BuzzerPin,OUTPUT);
   pinMode(WATER_PIN, INPUT);
   
@@ -83,11 +76,7 @@ void print(String str1, int len) {
 
 
 void smartLock() {
-  if (numTrials == 3){
-    print("LOCKED");
-    locked_tone();
-    return;
-  }
+  if(locked)return; // do somtheing
 
   char customKey = customKeypad.getKey();
   if (customKey){
@@ -107,34 +96,23 @@ void smartLock() {
 
   else if (customKey=='#'){ // else if # is entered we go check if password is correct
     if (pad == HomePassword){
-      success_tone();
       delay(500); // small pause before door opens
       print("Correct Password");
+      openDoor("Passkey");
       delay(2000);
-      openDoor();
       pad = "";
       state = true;
     }
     else if (pad == otp){
-      otp_tone();
       delay(500);
       print("OTP Used");
-      openDoor();
+      openDoor("OTP");
       otp = "Z";
       pad = "";
       state = true;
-      // sendTelegramMessage("OTP has been used");
     }
     else {
-      
-      for (int i = 0; i < 2; i++) {
-      wrong_tone();
-      }
-      print("Wrong password");   
-      pad = "";
-      // lcd.clear();
-      numTrials++;
-      // Blynk.virtualWrite (V1, "The password has been entered unsuccessfully");
+      wrongPass();
       state = true;
     }
   }
@@ -159,14 +137,32 @@ if (state){
   }
 }
   
-void openDoor() {
-  myServo.write(90);
+void openDoor(String method) {
+  if(method == String("OTP")) otp_tone();
+  else success_tone();
+  myServo.write(0);
+  Serial2.println(String("7") + method);
   print("Door Opened");
   delay(3000);
-  myServo.write(0);
+  myServo.write(90);
   print("Door Closed");
-  // Blynk.virtualWrite (V1, "Someone Opened the Door");
+  delay(1000);
+  state = true;
   numTrials = 0;
+}
+void wrongPass(String msg ="Wrong Password"){
+  wrong_tone();
+  print(msg);   
+  pad = "";
+  numTrials++;
+  if (numTrials == 3){
+    print("LOCKED");
+    locked_tone();
+    delay(1000);
+    state = true;
+    Serial2.println("-2");
+    locked = true;
+  }
 }
 void checkSerial() {
   if (Serial2.available()) {
@@ -176,13 +172,33 @@ void checkSerial() {
     Serial.print("Receieved FROM esp32: ");
     Serial.println(incoming);
     // Check if message starts with "OTP: "
-    if (incoming.startsWith("OTP: ")) {
-      // Extract substring after "OTP: " (6 characters)
-      otp = incoming.substring(5);
+    if (!locked && incoming.startsWith("0")) { // otp
+      // Extract substring a  fter "OTP: " (6 characters)
+      otp = incoming.substring(1);
       // Now otp holds the value sent from ESP32
+    } else if(!locked && incoming.startsWith("1")){ // nfc
+      String person = incoming.substring(1);
+      print(String("Welcome ")+ person);
+      openDoor("NFC Tag");
+    } else if (!locked && incoming.startsWith("-1")){
+      wrongPass("unauthorized");
+    } else if(!locked && incoming.startsWith("2")){
+      print("NFC Enabled");
+      delay(2000);
+    } else if(!locked && incoming.startsWith("3")){
+      print("NFC Disabled");
+      delay(2000);
+    }else if (incoming.startsWith("9")){
+      locked= false;
+      numTrials = 0;
+      print("Lock Re-Enabled");
+      reenable_tone();
+      delay(1000);
+      state = true;
     }
   }
 }
+
 void checkWater(){
   int sensorValue = analogRead(WATER_PIN);
 
@@ -191,12 +207,13 @@ void checkWater(){
 
   // Check for rising edge (water detected)
   if (waterPresent && !lastWaterState) {
-    Serial2.println("WATER HIGH");
+    Serial2.println("4"); // Water HIGH
+    Serial.println("Water Detected");
   }
 
   // Check for falling edge (water gone)
   if (!waterPresent && lastWaterState) {
-    Serial2.println("WATER LOW");
+    Serial2.println("5"); // Water LOW
   }
 
   lastWaterState = waterPresent;

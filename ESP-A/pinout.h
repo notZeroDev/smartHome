@@ -21,9 +21,8 @@ extern const int spiSCK;
 extern const int spiMOSI;
 extern const int spiMISO;
 
-// shift registor
-extern const int dataPin;   // DS
-extern const int clockPin;  // SHCP
-extern const int latchPin;  // STCP
+// Serial communication with Arduino
+extern const int SERIAL_RX;
+extern const int SERIAL_TX;
 
 #endif

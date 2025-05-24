@@ -13,7 +13,7 @@
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
 *********/
-
+#include "env.h"
 #include "esp_camera.h"
 #include <WiFi.h>
 #include "esp_timer.h"
@@ -23,20 +23,12 @@
 #include "soc/soc.h" //disable brownout problems
 #include "soc/rtc_cntl_reg.h"  //disable brownout problems
 #include "esp_http_server.h"
-
-//Replace with your network credentials
-const char* ssid = "Home";
-const char* password = "notwelcome0000";
+#include <BlynkSimpleEsp32.h>
 
 #define PART_BOUNDARY "123456789000000000000987654321"
 
-// This project was tested with the AI Thinker Model, M5STACK PSRAM Model and M5STACK WITHOUT PSRAM
 #define CAMERA_MODEL_AI_THINKER
-//#define CAMERA_MODEL_M5STACK_PSRAM
-//#define CAMERA_MODEL_M5STACK_WITHOUT_PSRAM
 
-// Not tested with this model
-//#define CAMERA_MODEL_WROVER_KIT
 
 #if defined(CAMERA_MODEL_WROVER_KIT)
   #define PWDN_GPIO_NUM    -1
@@ -177,7 +169,6 @@ static esp_err_t stream_handler(httpd_req_t *req){
     if(res != ESP_OK){
       break;
     }
-    //Serial.printf("MJPG: %uB\n",(uint32_t)(_jpg_buf_len));
   }
   return res;
 }
@@ -193,14 +184,13 @@ void startCameraServer(){
     .user_ctx  = NULL
   };
   
-  //Serial.printf("Starting web server on port: '%d'\n", config.server_port);
   if (httpd_start(&stream_httpd, &config) == ESP_OK) {
     httpd_register_uri_handler(stream_httpd, &index_uri);
   }
 }
 
 void setup() {
-  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
  
   Serial.begin(115200);
   Serial.setDebugOutput(false);
@@ -244,21 +234,24 @@ void setup() {
     return;
   }
   // Wi-Fi connection
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid, pass);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
   Serial.println("");
   Serial.println("WiFi connected");
-  
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+  delay(1000);
   Serial.print("Camera Stream Ready! Go to: http://");
   Serial.print(WiFi.localIP());
+  Blynk.virtualWrite(V9, WiFi.localIP().toString()); // sends the local ip to blynk
   
   // Start streaming web server
   startCameraServer();
 }
 
 void loop() {
+  Blynk.run(); 
   delay(1);
 }

@@ -6,7 +6,8 @@
 
 extern WiFiClientSecure secured_client;
 extern UniversalTelegramBot bot;
-
+extern bool enableMessage;
+extern bool enableCalls;
 void setupTelegramBot();
 void makeTelegramCall(String msg);
 void sendTelegramMessage(String msg);

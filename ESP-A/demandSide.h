@@ -21,7 +21,7 @@ extern bool pot3;
 extern const int totalLoadThreshold;
 
 void checkLoad();
-void load_shed();
+void load_sheild();
 
 // getters
 int getACVal();
@@ -30,7 +30,7 @@ int getLightVal();
 
 
 // Cascading Cutoff Function: AC → Heater → Light
-bool cutOffLoad(int , int , int , int);
+bool cutOffLoad(int, int, int, int);
 // Restoration Function: Light → Heater → AC
-void restoreLoad(int , int , int , int ) ;
+void restoreLoad(int, int, int, int);
 #endif

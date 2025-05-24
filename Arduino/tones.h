@@ -7,6 +7,6 @@ void click_tone();
 void wrong_tone();
 void locked_tone();
 void otp_tone();
-
+void reenable_tone();
 
 #endif

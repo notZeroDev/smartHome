@@ -1,6 +1,7 @@
-# include "sensorsHandler.h"
+#include "sensorsHandler.h"
 #include "pinout.h"
 #include "telegram.h"
+#include "blynkAPI.h"
 
 
 
@@ -16,25 +17,27 @@ const int gasThreshold = 1800;
 bool lg = false;
 bool lw = false;
 
-// sensor values 
+// sensor values
 int gasValue;
-  
 
-
-void checkGas(){
+void checkGas() {
   gasValue = analogRead(gasSensorPin);
-//  Serial.print("Gas sensor: ");
-//  Serial.println(gasValue);
-//  Serial.print("!lg: ");
-//  Serial.println(!lg);
   if (gasValue >= gasThreshold) {
-    if(!lg){
+    if (!lg) {
       // Gas Detected
-      makeTelegramCall("Gas Leakage in your house");
       lg = true;
+      pot1 = false;
+      pot2 = false;
+      pot3 = false;
+      // cut off all loads
+      updateLoadsVirtualPins(false, false, false);
+      if (enableCalls)
+        makeTelegramCall("Gas Leakage in your house");
+      if (enableMessage)
+        sendTelegramMessage("Gas Leakage in your house");
     }
-  } else{
-    if(lg){ 
+  } else {
+    if (lg) {
       lg = false;
     }
   }

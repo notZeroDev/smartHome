@@ -15,6 +15,7 @@ extern const int gasThreshold;
 // Last known states
 extern bool lg;
 extern bool lw;
+extern bool pot1, pot2, pot3;
 
 // Sensor values
 extern int gasValue;

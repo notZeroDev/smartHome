@@ -5,17 +5,17 @@
 #include <Arduino.h>
 
 // Potentiometer pins (ADC input)
-const int potAC = 34;       // Input only, safe ADC
-const int potHeater = 35;   // Input only, safe ADC
-const int potLight = 32;    // ADC safe
+const int potAC = 35;
+const int potHeater = 34;
+const int potLight = 32;
 
 // Sensors Handler
-const int gasSensorPin = 33;   
+const int gasSensorPin = 33;
 
 // RFID (MFRC522 via SPI)
 const int rfidSS = 5;
 const int rfidRST = 22;
-const int spiSCK = 18;  
+const int spiSCK = 18;
 const int spiMOSI = 23;
 const int spiMISO = 19;
 
@@ -24,7 +24,6 @@ const int ledAC = 26;
 const int ledHeater = 27;
 const int ledLight = 14;
 
-// Shift register pins (digital output)
-// const int dataPin = 13;   // safe digital output
-// const int clockPin = 4;   // safe digital output
-// const int latchPin = 5;   // safe digital output
+// Serial communication with Arduino
+const int SERIAL_RX = 16;
+const int SERIAL_TX = 17;
