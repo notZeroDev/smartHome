@@ -86,8 +86,6 @@ Users can control devices and modes (e.g., lock/unlock door, enable NFC mode) vi
 | Blynk                   | Cloud and mobile app communication with ESP32     |
 | UniversalTelegramBot    | Send and receive Telegram messages                |
 | MFRC522 / MFRC522v2     | RFID/NFC tag reading                              |
-| ESP32Servo              | Servo motor control on ESP32                      |
-| LiquidCrystal_I2C       | Display text on I2C LCD modules (e.g., 1602/2004) |
 | WiFi                    | Wi-Fi communication (ESP32 built-in)              |
 | HTTPClient              | HTTP GET/POST requests (ESP32 built-in)           |
 ### Arduino
